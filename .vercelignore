@@ -1,0 +1,13 @@
+.git
+.codex
+.local-credentials
+.env*
+node_modules
+outputs
+work
+supabase
+tests
+scripts
+docs
+AGENTS.md
+*.tsbuildinfo

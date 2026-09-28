@@ -47,7 +47,10 @@ import {
   BusinessProduct,
   EarnerProduct,
   ProductProvider,
-} from "./ProductApp";
+  AuthScreen,
+  PublicHelp,
+  Mark,
+} from "./journey/Product";
 
 type Role = "earner" | "business";
 
@@ -61,10 +64,7 @@ function Brand({ light = false }: { light?: boolean }) {
       to="/"
       aria-label="RealReach home"
     >
-      <span className="brand-mark" aria-hidden="true">
-        <i />
-        <i />
-      </span>
+      <Mark />
       <span>realreach</span>
     </Link>
   );
@@ -116,7 +116,7 @@ function Header() {
   );
 }
 
-function LandingPage() {
+export function LandingPage() {
   return (
     <main>
       <Header />
@@ -1573,8 +1573,14 @@ export default function App() {
     <ProductProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<AuthPage initialMode="login" />} />
-        <Route path="/signup" element={<AuthPage initialMode="signup" />} />
+        <Route path="/login" element={<AuthScreen key="login" mode="login" />} />
+        <Route path="/signup" element={<AuthScreen key="signup" mode="signup" />} />
+        <Route path="/forgot-password" element={<AuthScreen key="forgot" mode="forgot" />} />
+        <Route path="/reset-password" element={<AuthScreen key="reset" mode="reset" />} />
+        <Route path="/verify-email" element={<AuthScreen key="verify" mode="verify" />} />
+        <Route path="/help" element={<PublicHelp />} />
+        <Route path="/terms" element={<PublicHelp legal />} />
+        <Route path="/privacy" element={<PublicHelp legal />} />
         <Route path="/earn/*" element={<EarnerProduct />} />
         <Route path="/business/*" element={<BusinessProduct />} />
         <Route path="/admin/*" element={<AdminProduct />} />
