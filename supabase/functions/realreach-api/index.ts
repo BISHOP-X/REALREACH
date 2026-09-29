@@ -22,24 +22,29 @@ Deno.serve(async (req) => {
       const jobs=must(await db.from('instagram_jobs').select('id,phase,state,attempts,due_at').order('due_at',{ascending:false}).limit(30));
       return reply(req,{jobs,instagramConfigured:!!Deno.env.get('ZERNIO_API_KEY'),livePayments:false});
     }
+    const profile=must(await db.from('profiles').select('account_type').eq('id',user.id).single());
+    if (!profile?.account_type && !admin) throw new ProviderError(409,'Finish setting up your account first.');
     if (body.action==='join-pilot') {
+      if (profile?.account_type!=='worker'&&!admin) throw new ProviderError(403,'A worker account is required.');
       requireProvider();
-      if (typeof body.invite!=='string' || !/^[a-f0-9]{64}$/.test(body.invite)) throw new ProviderError(400,'Enter a valid pilot invitation code.');
+      if (typeof body.invite!=='string' || !/^[a-f0-9]{64}$/.test(body.invite)) throw new ProviderError(400,'This invitation is invalid.');
       const id=must(await db.rpc('rr_claim_pilot',{p_actor:user.id,p_hash:await digest(body.invite),p_challenge:`RR-${randomToken().slice(0,20).toUpperCase()}`}));
       return reply(req,{id});
     }
     if (body.action==='check-pilot') {
+      if (profile?.account_type!=='worker'&&!admin) throw new ProviderError(403,'A worker account is required.');
       requireProvider();
-      if (typeof body.id!=='string' || !/^[0-9a-f-]{36}$/.test(body.id)) throw new ProviderError(400,'Invalid pilot.');
+      if (typeof body.id!=='string' || !/^[0-9a-f-]{36}$/.test(body.id)) throw new ProviderError(400,'Invalid request.');
       must(await db.rpc('rr_request_check',{p_actor:user.id,p_pilot:body.id}));
       return reply(req,{queued:true});
     }
+    if(profile?.account_type!=='business'&&!admin) throw new ProviderError(403,'A business account is required.');
     const business=must(await db.from('businesses').select('id,name,owner_id').eq('owner_id',user.id).maybeSingle());
     if (!business) throw new ProviderError(409,'Create your business profile first.');
     if (!['connect-start','connect-complete','invite-create','disconnect'].includes(body.action)) throw new ProviderError(400,'Unknown request.');
     requireProvider();
     const allowed=(Deno.env.get('RR_PILOT_BUSINESS_IDS') ?? '').split(',');
-    if (!allowed.includes(business.id)) throw new ProviderError(403,'Your business is saved. The team must enable it for the controlled Instagram pilot.');
+    if (!allowed.includes(business.id)) throw new ProviderError(403,'Instagram is not available for your business yet. Please contact support.');
     let connection=must(await db.from('instagram_connections').select('*').eq('business_id',business.id).maybeSingle());
     if (body.action==='connect-start') {
       const recent=must(await db.from('instagram_connect_attempts').select('id').eq('owner_id',user.id).gt('created_at',new Date(Date.now()-60_000).toISOString()));

@@ -1,84 +1,60 @@
 # RealReach
 
-RealReach is a mobile-first marketplace for genuine human attention. Nigerian businesses create campaigns around verified participation, while earners discover clear opportunities and build a trusted platform history.
+Instagram-first marketplace website built with React, TypeScript and Vite, hosted on Vercel.
 
-This repository contains an Instagram-only, mobile-first **early-access application** and a separately labelled product demo. The default routes now use real Supabase accounts and private profile/business records. The Instagram verification pilot has deployed server-side code, but its live provider credentials and controlled proof test are pending. This is not a production earning or payment service.
+## Current state
 
-Supabase Auth, schema, RLS, the sole-admin boundary and three Edge Functions are connected to the RealReach-only project. Google sign-in is enabled and its real local callback/session/sign-out flow has passed; public email delivery still needs custom SMTP. PocketFi and cash payments are not connected. The historical simulator lives only under `/demo`: all its permissions, funds, verification and payouts are simulated, and its demo admin is open only for sample testing. Use sample information in that demo.
+The production website uses real Supabase accounts. Worker/business account types are assigned once on the server. Only the pinned sole admin can switch fronts; admin operations additionally require an authenticator. There is no public simulator or open sample admin route.
 
-See [the pass 1/2 QA report](docs/RealReach-Pass-1-2-QA.md) for exact deployment, test results and remaining external gates. The older frontend QA document is a historical report, not the current backend status.
+Business onboarding creates an owned business record. Campaign drafts save to Supabase and are isolated by owner. Payments, funded campaign publication, the live task feed/assignment loop and payouts are not implemented end to end. Zernio and PocketFi activation are still required. Empty task screens are not a claim that a functioning paid marketplace has launched.
 
-## Stack
+Read [the current release and QA notes](docs/RealReach-Production-Flow-QA.md). Older documents describe historical prototypes or future scope and must not be presented as current capabilities.
 
-- React 19
-- TypeScript
-- Vite
-- Custom responsive design system
-- Vercel deployment
+## Develop
 
-## Local development
-
-```bash
+```powershell
 npm install
-cp .env.example .env.local
+# Copy .env.example to .env.local and supply the public application configuration.
 npm run dev
+npm test
+npm run build
 ```
 
-Put the RealReach URL, publishable key and public `VITE_GOOGLE_CLIENT_ID` in `.env.local`. Never add service-role, Google client-secret, Instagram or payment credentials to a `VITE_` variable. Web Google login/signup uses Google's official Identity Services button and a nonce-protected `signInWithIdToken` exchange with Supabase, not a redirect through the Supabase hostname. Keep `/auth/callback` for email confirmation/recovery and existing OAuth links. Run `npm run build` for a production bundle. A successful build does not prove provider activation.
+Use the RealReach URL, publishable key and public Google client ID. Never place service-role, Google client-secret, Instagram or payment secrets in browser configuration.
 
-Run `npm test` on Node 22.6+ (Node 24 recommended) for the state-machine regression suite.
+Google uses its official Identity Services button and a nonce-protected Supabase ID-token exchange. Email confirmation/recovery uses /auth/callback. Custom SMTP is still needed for reliable public email signup.
 
-## Real-account routes
+## Routes
 
-- `/login`, `/signup`, `/auth/callback` — real password/OAuth integration
-- `/verify-email`, `/forgot-password`, `/reset-password` — actual Auth API flows; delivery requires configured SMTP
-- `/account` — profile, preferred front, authenticator, sign-out
-- `/earn`, `/business` — real-account readiness workspaces
-- `/earn/instagram`, `/business/instagram` — private unpaid verification pilot
-- `/earn/wallet`, `/business/wallet` — truthful payment-disabled screens
-- `/admin` — designated admin only, with AAL2 required by the privileged API
+- /login, /signup, /verify-email, /forgot-password, /reset-password: real Auth.
+- /start: resolves the signed-in account’s destination.
+- /onboarding: one-time worker/business choice and details.
+- /earn, /earn/my-tasks, /earn/wallet: worker screens.
+- /business: business overview.
+- /business/campaigns, /business/campaigns/new, /business/campaigns/:id: real saved drafts.
+- /business/instagram: owned Instagram connection flow; unavailable without provider setup.
+- /business/wallet: funds screen; no fabricated balances or deposits.
+- /account: profile, security and support.
+- /admin: sole admin only; operations require MFA.
+- /demo and all its former child routes: removed, show page not found.
 
-## Demo routes (prefix every path below with `/demo`)
+## Verification
 
-- `/` — marketing website
-- `/signup`, `/login` — worker/business authentication previews
-- `/verify-email`, `/forgot-password`, `/reset-password` — account lifecycle previews
-- `/earn` — Instagram task discovery, search, filters and saved tasks
-- `/earn/my-tasks`, `/earn/assignments/:id` — resumable assignments, verification and receipts
-- `/earn/wallet`, `/earn/profile` — balances, bank placeholders, withdrawals and account settings
-- `/business` — campaign delivery and funding overview
-- `/business/campaigns/new` — four-step campaign builder
-- `/business/campaigns/:id` — delivery, pause/resume/close, CSV receipt export
-- `/business/billing`, `/business/settings` — demo top-ups and Instagram connection states
-- `/admin`, `/admin/proofs`, `/admin/payouts` — exception and payout simulation
-- `/help`, `/terms`, `/privacy` — preview guide and limitations
+- npm test: account boundaries, Google nonce handling, provider contracts and historical simulator state invariants.
+- npm run build: TypeScript and production bundle.
+- node tests/live-access-smoke.mjs: real anonymous/admin SDK/API checks, using the ignored locally stored admin credential; signs out only its own session.
+- tests/account-boundaries.sql: explicitly authorized rollback-only database test under the authenticated role. Uses existing confirmed accounts to exercise onboarding, account-type locking and cross-owner draft isolation. Not a replacement for genuine ordinary-user JWT/browser tests.
+- Current browser evidence: 69 responsive route/size checks via the browser tools, actual admin login/sign-out, anonymous route guards, screenshots in ignored outputs/qa/production-flow.
 
-## Try the simulated complete loop
+The earlier tests/browser-pass12.cjs, tests/live-security.mjs and tests/browser-journeys.cjs describe the retired prototype and old schema behavior. Do not run them against production: their QA users were removed and their role-switch/demo expectations no longer apply.
 
-1. Open `/demo/business` and create a campaign. Review the quote and publish with demo funds.
-2. Switch to Worker using the workspace switcher. Open the campaign and accept a place.
-3. Simulate the verification message, preview the Instagram action, then request a check.
-4. Open **Demo controls**, advance the demo clock by 48 hours, and pass the final check.
-5. Visit Wallet; add a sample bank, request a withdrawal, and simulate success or failure.
-6. Return to Business to inspect the same assignment and its delivery receipt.
+## Structure
 
-The initial balances and sample campaigns are explicitly demo data. Worker and business fronts represent separate simulated participants so the same tester can walk both sides; this is not authorization to earn from one's own business in production. Progress survives refresh and is synchronized between tabs on the same origin. This browser-only simulation is not safe for concurrent real-money use. Account → Reset demo workspace resets only the new preview; the previous prototype's storage is retained.
+- src/live: the active production UI and Supabase client.
+- src/main.tsx: mounts only LiveApp.
+- supabase/migrations: versioned live schema changes.
+- supabase/functions: authenticated server commands, Instagram adapter, webhook and scheduled checks.
+- src/journey and src/App.tsx: historical simulator reference, not routed or imported by production JS. Only the shared stylesheet is retained.
+- docs: scope, research, staged build plan and evidence reports.
 
-## Structure and verification
-
-- `src/live/`: Supabase client, generated types, authentication, real-account pages and responsive UI.
-- `supabase/migrations/`: versioned deployed database schema and private job scheduling.
-- `supabase/functions/`: authenticated commands, Zernio adapter, signed webhook and job runner.
-- `tests/live-security.mjs`, `tests/browser-pass12.cjs`: explicitly provisioned disposable-user integration checks. See the QA report before running; the last QA accounts were cleaned up.
-- `src/journey/model.ts`: typed commands, deterministic state transitions, capacity and demo-money invariants.
-- `src/journey/store.tsx`: versioned local persistence, cross-tab updates, notices and command errors.
-- `src/journey/Worker.tsx`, `Business.tsx`, `Account.tsx`: the connected journeys.
-- `src/journey/ui.tsx`, `journey.css`: reusable controls, accessible native dialogs and responsive visual system.
-- `src/journey/Product.tsx`: active workspace routing and demo administration. The prior `src/ProductApp.tsx` is retained as a reference but is not imported by the active application.
-- `tests/journey.test.mjs`: money/state regressions.
-- `tests/browser-journeys.cjs`: legacy demo walkthrough; target `REALREACH_TEST_URL=http://localhost:5173/demo`. Requires Playwright (installed locally or supplied using `REALREACH_PLAYWRIGHT_PATH`). Optional `REALREACH_BROWSER_CDP` connects to a dedicated QA browser. Outputs go to ignored `outputs/qa`.
-- `docs/RealReach-Frontend-First-Pass-QA.md`: verification scope and backend handoff.
-
-See `docs/RealReach-Instagram-V1-PRD.md` for the proposed backend contract and commercial release gates. A successful mock journey does not establish live API reliability, payment security, unique-human verification or platform permission.
-
-The [V1 delivery plan](docs/RealReach-V1-Delivery-Plan.md) breaks production work into five tested passes: accounts/access, Instagram verification, persistent marketplace, PocketFi, and controlled release. It records the confirmed single-admin identity and the remaining Google, email and payment setup. The plan itself does not activate those integrations.
+Do not call the complete business → worker → payout journey ready until live verification, funding, settlement, withdrawals and ordinary-user integration tests pass. Do not reintroduce a separate public test product: the CEO’s acceptance group should use the same real accounts and eventual live transaction flow as customers.

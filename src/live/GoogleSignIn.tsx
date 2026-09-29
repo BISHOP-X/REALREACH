@@ -50,7 +50,7 @@ export function GoogleSignIn({ mode, front, disabled, onBusy }: {
               const { data, error } = await attempt.exchange(response.credential, request => db().auth.signInWithIdToken(request));
               if (error) throw error;
               if (!data.session) throw new Error('Google sign-in did not create a session. Please retry.');
-              if (alive) navigate('/account', { replace: true });
+              if (alive) navigate('/start', { replace: true });
             } catch (error) {
               if (alive) {
                 setError(friendlyError(error));

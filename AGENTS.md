@@ -3,8 +3,10 @@
 ## Identify the project before accessing Supabase
 
 - This repository is RealReach, an Instagram-first marketplace frontend built
-  with React, TypeScript and Vite. The existing journey is a local demo until
-  specific production integrations are implemented and verified.
+  with React, TypeScript and Vite. The production UI uses real Auth, fixed
+  account types and saved business drafts. The paid marketplace is incomplete.
+  Read docs/RealReach-Production-Flow-QA.md for current state; older prototype
+  descriptions are historical, not the active user journey.
 - Expected Supabase project ref: `jabwuawiqsusjrccapab`.
 - Expected API URL: `https://jabwuawiqsusjrccapab.supabase.co`.
 - Read this file, the available Supabase skills, `.codex/config.toml`, and
@@ -64,7 +66,13 @@
   `docs/RealReach-Frontend-First-Pass-QA.md` for scope, verification constraints
   and the existing UI test handoff.
 - Mobile is the priority; verify phone and desktop layouts after UI changes.
-- Keep demo authentication, Instagram responses and money clearly labelled
-  until each corresponding production integration genuinely works.
+- Do not restore public demo routes, role simulators or sample admin screens.
+  Customer-facing copy must be concise and plain. CEO acceptance uses the same
+  real account and transaction flow as customers, not a separate mock product.
+  Keep unavailable integrations closed with a short honest message; never
+  fabricate verification, balances, payments or completed work.
+- Worker/business account_type is chosen once through rr_complete_onboarding.
+  preferred_front and editable Auth metadata grant no access. Only the pinned
+  admin may switch fronts. No automatic conversion from worker to business.
 - Existing checks: `npm test`, `npm run build`, and the browser journey harness
   described in the README. These do not replace backend authorization tests.

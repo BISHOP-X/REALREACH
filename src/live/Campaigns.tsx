@@ -1,0 +1,32 @@
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, ArrowRight, Camera, Check, Megaphone, Plus } from 'lucide-react';
+import { db, friendlyError } from './client';
+import { useAuth } from './AuthContext';
+import { Notice } from './AuthPages';
+import { EmptyState, PageHeading, Panel, useBusiness, Workspace } from './Workspace';
+import type { Database } from './database.types';
+
+type Draft = Database['public']['Tables']['campaign_drafts']['Row'];
+export function Campaigns(){
+  const {user}=useAuth(),[drafts,setDrafts]=useState<Draft[]>([]),[error,setError]=useState(''),[loading,setLoading]=useState(true),[revision,setRevision]=useState(0);
+  useEffect(()=>{let alive=true;setError('');setLoading(true);void db().from('campaign_drafts').select('*').eq('owner_id',user!.id).order('created_at',{ascending:false}).then(({data,error})=>{if(!alive)return;if(error)setError('We couldn’t load your campaigns. Please try again.');else setDrafts(data??[]);setLoading(false);});return()=>{alive=false;};},[user?.id,revision]);
+  return <Workspace><PageHeading kicker="YOUR BUSINESS" title="Campaigns" text="A home for your next Instagram campaign."><Link className="r-button" to="/business/campaigns/new"><Plus size={18}/> New campaign</Link></PageHeading>{error?<Notice error>{error}<button className="r-text-button" onClick={()=>setRevision(v=>v+1)}>Retry</button></Notice>:loading?<Panel><p role="status">Loading campaigns…</p></Panel>:drafts.length?<div className="rr-campaign-grid">{drafts.map(d=><Link to={`/business/campaigns/${d.id}`} className="rr-campaign-card" key={d.id}><div className="rr-campaign-top"><span className="r-service-icon"><Camera size={24}/></span><span className="r-status">Draft</span></div><h2>{d.title}</h2><p>{d.quantity.toLocaleString()} Instagram follows</p><div className="rr-campaign-foot"><span>Updated {new Date(d.updated_at).toLocaleDateString('en-NG',{day:'numeric',month:'short'})}</span><span>Edit draft <ArrowRight size={16}/></span></div></Link>)}</div>:<EmptyState icon={Megaphone} title="Your first campaign starts here." text="Choose how many people you want to reach. Save your draft and come back anytime."><Link className="r-button" to="/business/campaigns/new">Create a campaign <ArrowRight size={18}/></Link></EmptyState>}</Workspace>;
+}
+
+export function CampaignEditor(){
+  const {id}=useParams(),auth=useAuth(),state=useBusiness(),navigate=useNavigate();
+  const [title,setTitle]=useState(''),[quantity,setQuantity]=useState('100'),[loading,setLoading]=useState(!!id),[missing,setMissing]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
+  useEffect(()=>{if(!id)return;let alive=true;setLoading(true);void db().from('campaign_drafts').select('*').eq('id',id).eq('owner_id',auth.user!.id).maybeSingle().then(({data,error})=>{if(!alive)return;if(error)setError('We couldn’t load this campaign. Please try again.');else if(!data)setMissing(true);else{setTitle(data.title);setQuantity(String(data.quantity));}setLoading(false);});return()=>{alive=false;};},[id,auth.user?.id]);
+  async function save(e:FormEvent){e.preventDefault();setBusy(true);setError('');setSaved(false);try{
+    if(!state.business)throw new Error('Add your business details before creating a campaign.');
+    const values={title:title.trim(),quantity:Number(quantity)};
+    const result=id?await db().from('campaign_drafts').update(values).eq('id',id).eq('owner_id',auth.user!.id).select('id').single():await db().from('campaign_drafts').insert({...values,business_id:state.business.id,owner_id:auth.user!.id,action:'follow'}).select('id').single();
+    if(result.error)throw new Error('Your draft wasn’t saved. Please try again.');
+    setSaved(true);if(!id)navigate(`/business/campaigns/${result.data.id}`,{replace:true});
+  }catch(e){setError(friendlyError(e));}finally{setBusy(false);}}
+  return <Workspace><Link className="r-back" to="/business/campaigns"><ArrowLeft size={16}/> Campaigns</Link><PageHeading kicker="INSTAGRAM CAMPAIGN" title={id?'Edit your campaign.':'Make your next move.'} text="Start with a draft. Nothing is charged."/>
+    {error&&<Notice error>{error}</Notice>}{state.error&&<Notice error>{state.error}</Notice>}{saved&&<Notice>Draft saved.</Notice>}
+    {loading||state.loading?<Panel><p role="status">Loading…</p></Panel>:missing?<EmptyState icon={Megaphone} title="Campaign not found." text="It may belong to another account."><Link className="r-button" to="/business/campaigns">Back to campaigns</Link></EmptyState>:<form onSubmit={save}><div className="r-two-column"><div><Panel title="Campaign details"><div className="r-form"><label>Campaign name<input required minLength={3} maxLength={100} placeholder="e.g. Meet our new collection" value={title} onChange={e=>{setTitle(e.target.value);setSaved(false);}}/></label><div className="rr-action-choice"><span className="r-service-icon"><Camera size={24}/></span><div><strong>Follow your Instagram</strong><small>New followers for your business account.</small></div><Check size={19}/></div><label>Number of followers<input type="number" min={1} max={10000} step={1} inputMode="numeric" required value={quantity} onChange={e=>{setQuantity(e.target.value);setSaved(false);}}/></label></div></Panel><Panel title="Instagram account"><div className="rr-account-line"><Camera size={23}/><div><strong>{state.connection?.status==='connected'?`@${state.connection.username}`:'No Instagram connected'}</strong><small>{state.business?.name??'Business details required'}</small></div><Link className="r-text-button" to="/business/instagram">{state.connection?.status==='connected'?'Manage':'Connect'}<ArrowRight size={16}/></Link></div></Panel></div><aside><Panel className="r-guide-panel" title="Before you publish"><p>Your Instagram must be connected, and your campaign must be funded.</p><div className="rr-summary-row"><span>Action</span><strong>Instagram follow</strong></div><div className="rr-summary-row"><span>Quantity</span><strong>{Number(quantity||0).toLocaleString()}</strong></div><p className="rr-publish-note">Publishing is unavailable while Instagram and payments are being connected. Your draft can still be saved.</p><button className="r-button rr-full-width" disabled={busy||!state.business}>{busy?'Saving…':'Save draft'}<Check size={17}/></button><Link className="r-text-button" to="/business/campaigns">Back to campaigns</Link></Panel></aside></div></form>}
+  </Workspace>;
+}

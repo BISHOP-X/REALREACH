@@ -34,7 +34,7 @@ export function friendlyError(error: unknown) {
   if (/failed to fetch|timeout|aborted/i.test(message)) return 'Connection interrupted. Check your connection and try again.';
   return message;
 }
-export type Profile = { id:string;display_name:string;city:string;preferred_front:'worker'|'business' };
+export type Profile = { id:string;display_name:string;city:string;preferred_front:'worker'|'business';account_type:'worker'|'business'|null };
 export type Business = { id:string;name:string;owner_id:string };
 export type Connection = { id:string;business_id:string;owner_id:string;username:string|null;status:string;updated_at:string };
 export type Pilot = { id:string;business_id:string;worker_id:string;owner_id:string;business_name:string;instagram_username:string;challenge:string;status:string;reason:string|null;hold_until:string|null;expires_at:string;created_at:string;updated_at:string };

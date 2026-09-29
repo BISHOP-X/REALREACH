@@ -35,6 +35,47 @@ export type Database = {
         }
         Relationships: []
       }
+      campaign_drafts: {
+        Row: {
+          action: string
+          business_id: string
+          created_at: string
+          id: string
+          owner_id: string
+          quantity: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action?: string
+          business_id: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          quantity: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          quantity?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_drafts_business_id_owner_id_fkey"
+            columns: ["business_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       instagram_bindings: {
         Row: {
           business_id: string
@@ -340,6 +381,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string | null
           city: string
           created_at: string
           display_name: string
@@ -347,6 +389,7 @@ export type Database = {
           preferred_front: string
         }
         Insert: {
+          account_type?: string | null
           city?: string
           created_at?: string
           display_name?: string
@@ -354,6 +397,7 @@ export type Database = {
           preferred_front?: string
         }
         Update: {
+          account_type?: string | null
           city?: string
           created_at?: string
           display_name?: string
@@ -387,6 +431,15 @@ export type Database = {
     Functions: {
       rr_claim_pilot: {
         Args: { p_actor: string; p_challenge: string; p_hash: string }
+        Returns: string
+      }
+      rr_complete_onboarding: {
+        Args: {
+          p_business_name?: string
+          p_city?: string
+          p_name: string
+          p_type: string
+        }
         Returns: string
       }
       rr_finish_check: {

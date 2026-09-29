@@ -4,7 +4,7 @@ export const projectUrl = Deno.env.get('SUPABASE_URL') ?? '';
 export const service = () => createClient(projectUrl,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',{ auth: { persistSession:false,autoRefreshToken:false } });
 export const provider = () => new InstagramProvider(Deno.env.get('ZERNIO_API_KEY') ?? '');
 export function requireProvider() {
-  if (!Deno.env.get('ZERNIO_API_KEY')) throw new ProviderError(503,'Instagram is awaiting provider setup. Your account is saved; no verification or payment has occurred.');
+  if (!Deno.env.get('ZERNIO_API_KEY')) throw new ProviderError(503,'Instagram connections are unavailable. Please try again later.');
 }
 export const origins = () => (Deno.env.get('RR_ALLOWED_ORIGINS') ?? 'https://www.realreach.com.ng,https://realreach.com.ng,http://localhost:5173,http://localhost:5174').split(',').map(s => s.trim());
 export function cors(req: Request) {

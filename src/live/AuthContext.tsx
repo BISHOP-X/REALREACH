@@ -22,9 +22,9 @@ export function AuthProvider({children}:{children:ReactNode}) {
     let alive=true;
     setProfile(previous=>previous?.id===user?.id?previous:null);setAdmin(false);setError('');
     if (!user) {setProfileLoading(false);return;}
-    setProfileLoading(!profile || profile.id!==user.id);
+    setProfileLoading(true);
     void Promise.all([
-      db().from('profiles').select('id,display_name,city,preferred_front').eq('id',user.id).single(),
+      db().from('profiles').select('id,display_name,city,preferred_front,account_type').eq('id',user.id).single(),
       db().from('sole_admin').select('user_id').eq('user_id',user.id).maybeSingle(),
     ]).then(([p,a])=>{
       if (!alive)return;
@@ -33,7 +33,8 @@ export function AuthProvider({children}:{children:ReactNode}) {
     }).catch(e=>{if(alive)setError(friendlyError(e));}).finally(()=>{if(alive)setProfileLoading(false);});
     return ()=>{alive=false;};
   },[user?.id,revision]);
-  async function signOut(){const {error}=await db().auth.signOut();if(error)throw error;disableGoogleAutoSelect();setProfile(null);setAdmin(false);setUser(null);}
-  return <Context.Provider value={{user,profile,isAdmin,loading:sessionLoading||profileLoading,error,refresh:async()=>{setRevision(r=>r+1);},signOut}}>{children}</Context.Provider>;
+  async function signOut(){const {error}=await db().auth.signOut({scope:'local'});if(error)throw error;disableGoogleAutoSelect();setProfile(null);setAdmin(false);setUser(null);}
+  const currentProfile=profile?.id===user?.id?profile:null;
+  return <Context.Provider value={{user,profile:currentProfile,isAdmin:!!currentProfile&&isAdmin,loading:sessionLoading||profileLoading||!!(user&&!currentProfile&&!error),error,refresh:async()=>{setRevision(r=>r+1);},signOut}}>{children}</Context.Provider>;
 }
 export function useAuth(){const value=useContext(Context);if(!value)throw new Error('AuthProvider required');return value;}
