@@ -1,0 +1,265 @@
+/* Work comes before promotion. Keep the next action within reach on a phone. */
+.worker-discover .studio-intro {
+  margin-bottom: 24px;
+}
+.worker-discover .studio-intro h1 {
+  font-size: 37px;
+  letter-spacing: -1.5px;
+}
+.worker-discover .studio-intro p {
+  margin-bottom: 0;
+}
+.worker-wallet-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 220px;
+  padding: 16px 19px;
+  border: 1px solid #e1d9d3;
+  border-radius: 15px;
+  text-decoration: none;
+  color: #38283d;
+  background: #fffefb;
+}
+.worker-wallet-link > svg:first-child {
+  color: #8b715b;
+}
+.worker-wallet-link > svg:last-child {
+  margin-left: auto;
+  color: #88798a;
+}
+.worker-wallet-link span {
+  display: grid;
+  gap: 4px;
+}
+.worker-wallet-link small {
+  font-size: 10px;
+  color: #786b77;
+}
+.worker-wallet-link strong {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.worker-resume {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  min-height: 98px;
+  padding: 18px 23px;
+  border: 1px solid #443249;
+  border-radius: 16px;
+  background: #302034;
+  color: #fffefb;
+  text-decoration: none;
+  margin-bottom: 23px;
+}
+.worker-resume-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid #ffffff22;
+  border-radius: 13px;
+  background: #ffffff08;
+  color: #dcebb0;
+}
+.worker-resume > div {
+  flex: 1;
+  min-width: 0;
+}
+.worker-resume small {
+  display: block;
+  color: #dcebb0;
+  font-size: 8px;
+  letter-spacing: 1.3px;
+  font-weight: 650;
+  margin-bottom: 5px;
+}
+.worker-resume strong {
+  display: block;
+  color: #fffefb;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.worker-resume div > span {
+  display: block;
+  color: #d6cad7;
+  font-size: 11px;
+  margin-top: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.worker-resume > svg {
+  flex-shrink: 0;
+  color: #e5dce4;
+}
+.worker-setup {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 17px 20px;
+  border: 1px solid #e4d9c2;
+  border-radius: 14px;
+  background: #f6f0e3;
+  color: #635239;
+  text-decoration: none;
+  margin-bottom: 24px;
+}
+.worker-setup > span {
+  flex: 1;
+  min-width: 0;
+}
+.worker-setup strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+}
+.worker-setup small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 5px;
+  color: #84745e;
+}
+.worker-setup > svg {
+  flex-shrink: 0;
+}
+.worker-discover .studio-section-line {
+  margin-top: 20px;
+}
+.worker-discover .studio-task-card {
+  background: #fffefb;
+}
+.worker-discover .studio-task-reward strong {
+  color: #49344d;
+}
+@media (max-width: 900px) {
+  .worker-discover .studio-intro {
+    flex-direction: row;
+    align-items: center;
+  }
+  .worker-discover .studio-intro-actions {
+    width: auto;
+  }
+  .worker-wallet-link {
+    min-width: 190px;
+  }
+  .worker-discover .studio-intro h1 {
+    font-size: 31px;
+  }
+}
+@media (max-width: 600px) {
+  .worker-discover .studio-intro {
+    display: block;
+    margin-bottom: 18px;
+  }
+  .worker-discover .studio-intro h1 {
+    font-size: 29px;
+    line-height: 1.2;
+    margin-bottom: 7px;
+  }
+  .worker-discover .studio-intro p {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .worker-discover .studio-intro-actions {
+    margin-top: 17px;
+  }
+  .worker-wallet-link {
+    min-width: 0;
+    width: 100%;
+    padding: 11px 14px;
+    min-height: 49px;
+    border-radius: 11px;
+    gap: 11px;
+    background: #f2eee7;
+    border-color: #e8e1d8;
+  }
+  .worker-wallet-link span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 1;
+  }
+  .worker-wallet-link small {
+    font-size: 11px;
+  }
+  .worker-wallet-link strong {
+    font-size: 17px;
+  }
+  .worker-wallet-link > svg:last-child {
+    width: 15px;
+    margin-left: 0;
+  }
+  .worker-resume {
+    min-height: 88px;
+    padding: 15px;
+    gap: 12px;
+    border-radius: 13px;
+    margin-bottom: 20px;
+  }
+  .worker-resume-icon {
+    width: 36px;
+    height: 39px;
+    border-radius: 11px;
+  }
+  .worker-resume strong {
+    font-size: 12px;
+  }
+  .worker-resume small {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+  .worker-resume div > span {
+    font-size: 10px;
+  }
+  .worker-resume > svg {
+    width: 17px;
+  }
+  .worker-setup {
+    padding: 14px 15px;
+    gap: 11px;
+    margin-bottom: 20px;
+  }
+  .worker-setup strong {
+    font-size: 12px;
+  }
+  .worker-setup small {
+    font-size: 10px;
+  }
+  .worker-discover .studio-section-line {
+    margin: 20px 0 14px;
+  }
+  .worker-discover .studio-section-line h2 {
+    font-size: 20px;
+  }
+  .worker-discover .studio-toolbar {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .worker-discover .studio-tabs button {
+    min-height: 44px;
+    padding: 10px 15px;
+  }
+  .worker-discover .studio-task-card {
+    padding: 18px 19px 0;
+  }
+  .worker-discover .studio-task-copy {
+    padding-top: 15px;
+  }
+  .worker-discover .studio-task-copy h2 {
+    font-size: 20px;
+    margin-top: 6px;
+  }
+  .worker-discover .studio-task-reward {
+    margin: 18px 0 15px;
+  }
+  .worker-discover .studio-task-reward strong {
+    font-size: 27px;
+  }
+}

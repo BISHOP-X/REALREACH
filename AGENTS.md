@@ -22,6 +22,28 @@
 
 ## Use the right interface
 
+- Local operator access was restored with an owner-supplied personal access
+  token on 2026-10-01. It is encrypted with Windows user-scoped DPAPI at
+  `.local-credentials/supabase-pat.dpapi`; the directory is owner-only, ignored
+  by Git and excluded from Vercel. Never print, copy or commit the credential.
+  Use `scripts/realreach-supabase.ps1` in the original Windows account, for
+  example `& ./scripts/realreach-supabase.ps1 -CliArguments @('functions', 'list')`.
+  It verifies the server project identity and supplies the token only to the
+  command process, without replacing other CLI logins. `-Operation ProjectInfo`
+  and `-Operation ReadOnlyQuery -Sql 'select 1 as access_check'` are diagnostics.
+  This does not authenticate the MCP connector. Writes/deployments still need
+  an authorized task and separate verification. The token was shared in chat;
+  recommend secure replacement rather than treating encryption as revocation.
+
+- The dedicated `realreach-supabase` MCP was successfully reauthorized and
+  verified on 2026-10-01. Use its `mcp__realreach_supabase__*` tools, not the
+  generic `mcp__codex_apps__supabase_*` plugin, which separately denied access.
+  The dedicated connection returned the expected API URL; table, migration,
+  Edge Function listings and a diagnostic SQL query succeeded. The query ran
+  as `postgres` with transaction read-only mode off. Migration/deployment tools
+  are available, but no schema mutation or deployment was performed solely
+  for the access check. Reconfirm runtime identity/access in a new session.
+
 - Use MCP for investigation and authorized administration: inspect schema,
   tables, policies, logs, security advisories and Edge Functions; run read-only
   SQL; apply migrations or deploy functions only when supported and authorized.

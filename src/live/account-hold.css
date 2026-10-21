@@ -1,0 +1,3 @@
+.studio-account-hold{display:flex;gap:14px;align-items:flex-start;padding:20px;margin:0 0 24px;border:1px solid #d8c293;border-radius:18px;background:#fff9ea;color:#49391c}
+.studio-account-hold>svg{flex:none;margin-top:2px}.studio-account-hold strong{font-size:15px}.studio-account-hold p{margin:6px 0 10px;font-size:13px;line-height:1.6}.studio-account-hold a{display:inline-flex;align-items:center;gap:6px;min-height:44px;font-size:13px;font-weight:700;text-underline-offset:4px}
+@media(max-width:480px){.studio-account-hold{padding:16px;gap:10px;border-radius:15px}}
