@@ -105,11 +105,16 @@ try {
       assert.equal(await page.getByRole('heading',{name:'Let’s get you back.',exact:true}).count(),0,`${path} rendered the error boundary at ${width}px`);
       const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);
       assert.equal(overflow,false,`${path} overflows at ${width}`);results.layouts.push({width,path,overflow});
+      const linkColors=await page.locator('a.studio-button').evaluateAll(links=>links.map(link=>({
+        light:link.classList.contains('secondary')||link.classList.contains('light'),color:getComputedStyle(link).color,
+      })));
+      for(const link of linkColors) assert.equal(link.color,link.light?'rgb(48, 32, 52)':'rgb(255, 255, 255)',`${path} linked button contrast at ${width}`);
       if([390,1440].includes(width)&&['/business',`/business/campaigns/${liveId}`,'/business/campaigns/new'].includes(path))await page.screenshot({path:`${out}/${path.replaceAll('/','-').slice(1)}-${width}.png`,fullPage:true});
     }
     pass(`${width}px: six business routes fit without horizontal overflow`);
   }
   await page.setViewportSize({width:390,height:844});await page.goto(base+'/business/campaigns');
+  pass('linked action buttons retain explicit contrast across all business routes and widths');
   await page.getByRole('button',{name:'Load more campaigns'}).click();await page.getByRole('heading',{name:'From the archive'}).waitFor();pass('campaign pagination reaches records outside the workspace snapshot');
   await page.getByLabel('Search campaigns').fill('archive');await page.getByRole('heading',{name:'The everyday edit'}).waitFor({state:'hidden'});await page.getByRole('heading',{name:'From the archive'}).click();await page.getByLabel('Campaign name',{exact:false}).waitFor();assert.equal(await page.getByLabel('Campaign name',{exact:false}).inputValue(),'From the archive');pass('server search and direct edit links reach older owned campaigns');
   await page.goto(base+'/business/campaigns/new');await page.getByLabel('Campaign name',{exact:false}).fill('Unsaved brand brief');
