@@ -6,11 +6,11 @@ Instagram-first marketplace website built with React, TypeScript and Vite, hoste
 
 The production website uses real Supabase accounts. Worker/business account types are assigned once on the server. Only the pinned sole admin can switch fronts; admin operations additionally require an authenticator. There is no public simulator or open sample admin route.
 
-Business onboarding creates an owned business record. Campaign drafts save to Supabase and are isolated by owner. The deployed baseline still lacks the paid marketplace. A new local implementation now connects the worker, business, wallet, support and admin screens to production-oriented marketplace commands, a financial ledger, verification jobs and RocketAPI/PocketFi adapters. It is not deployed or accepted with live providers yet. Operator recovery for uncertain payouts, payment reversals and permanently unresolved verification still needs work before accepting customer money.
+Business onboarding creates an owned business record. On 21 October 2026 the marketplace website, three database migrations and four new Edge Functions were deployed, with release code pushed as `f2e4209`. Worker, business, wallet, support and admin screens now use the deployed marketplace commands. **Top-ups and payouts remain explicitly disabled in the database**, independently of provider keys. Live Rocket/PocketFi acceptance, email setup, founder MFA and evidence-backed financial exception recovery remain required before customer transactions.
 
 Read [the implementation and acceptance status](docs/RealReach-Marketplace-Implementation-QA.md) before testing or deploying this checkout. RocketAPI replaces the earlier Zernio direction; old adapter code is historical and must not be confused with the new verification flow.
 
-Read [the current release and QA notes](docs/RealReach-Production-Flow-QA.md). Older documents describe historical prototypes or future scope and must not be presented as current capabilities.
+The [September release notes](docs/RealReach-Production-Flow-QA.md) are historical. Older documents describe prototypes or future scope and must not be presented as current capabilities.
 
 ## Develop
 
@@ -63,8 +63,11 @@ Google uses its official Identity Services button and a nonce-protected Supabase
 - deno test --no-config --node-modules-dir=none --allow-env tests/marketplace-admin-http.test.ts tests/payment-recovery.test.ts: restricted investigation/history and payment-recovery contracts; no network permission.
 - deno test --no-config --node-modules-dir=none --allow-env tests/marketplace-operations-http.test.ts tests/operations-runner.test.ts: restricted operations API, worker heartbeat, send/retry persistence, liveness and job-token checks; no network permission.
 - node tests/live-access-smoke.mjs: real anonymous/admin SDK/API checks, using the ignored locally stored admin credential; signs out only its own session.
+- REALREACH_LIVE_CONFIRM=read-only node tests/browser-live-readonly.mjs --admin --release-qa: real production browser checks with existing owner-scoped credentials; blocks money, provider and other application writes. See the QA report for the latest actual run and its limits.
+- REALREACH_LIVE_CONFIRM=no-money-acceptance node tests/live-marketplace-acceptance.mjs: separately authorized private-account acceptance against the deployed API. Creates owned drafts/cases and tests role/isolation boundaries; requires all payment gates closed and no balances. Never treat this as email or provider acceptance.
+- REALREACH_LIVE_CONFIRM=no-money-acceptance node tests/browser-live-no-money.mjs: real form acceptance limited to the known private QA identities. Saves/restores business details and the existing unfunded draft; submits one deduplicated labelled support request. All payment, publication, Instagram and bank writes are blocked by the harness.
 - tests/account-boundaries.sql: explicitly authorized rollback-only database test under the authenticated role. Uses existing confirmed accounts to exercise onboarding, account-type locking and cross-owner draft isolation. Not a replacement for genuine ordinary-user JWT/browser tests.
-- Earlier production Auth evidence: 69 responsive route/size checks, admin login/sign-out and anonymous route guards in ignored outputs/qa/production-flow. This is not acceptance of the new, unreleased marketplace. Current local evidence and remaining release gates are in the implementation QA report above.
+- Earlier production Auth evidence: 69 responsive route/size checks, admin login/sign-out and anonymous route guards in ignored outputs/qa/production-flow. This is historical evidence, not acceptance of the new marketplace. Current local/live evidence and remaining release gates are in the implementation QA report above.
 
 The earlier tests/browser-pass12.cjs, tests/live-security.mjs and tests/browser-journeys.cjs describe the retired prototype and old schema behavior. Do not run them against production: their QA users were removed and their role-switch/demo expectations no longer apply.
 
@@ -77,7 +80,7 @@ The earlier tests/browser-pass12.cjs, tests/live-security.mjs and tests/browser-
 - supabase/functions/marketplace-jobs: authenticated verification and payment reconciliation runner.
 - supabase/functions/pocketfi-webhook: signed provider notifications and independent payment confirmation.
 - supabase/functions/marketplace-operations: private scheduled alert sender and minimal public monitor-liveness check; daily read-only ledger checks run separately in SQL. See [operations setup](docs/RealReach-Provider-Contracts.md#operations-email-resend).
-- supabase/functions/_shared: RocketAPI/PocketFi adapters and shared backend code. Existing realreach-api and older Instagram endpoints remain separate until the migration/deployment plan is applied.
+- supabase/functions/_shared: RocketAPI/PocketFi adapters and shared backend code. Existing realreach-api and older Instagram endpoints remain separate for compatibility; their historical scheduler does not process marketplace jobs.
 - src/journey and src/App.tsx: historical simulator reference, not routed or imported by production JS. Only the shared stylesheet is retained.
 - docs: scope, research, staged build plan and evidence reports.
 

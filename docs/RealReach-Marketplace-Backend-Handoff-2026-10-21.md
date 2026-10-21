@@ -2,15 +2,28 @@
 
 ## Release status
 
-The new marketplace backend is implemented locally and is **not deployed**. No
-live migration, transfer, credit, provider purchase or database write was made
-for this work. Read-only access identified RealReach as
-`jabwuawiqsusjrccapab`, `ACTIVE_HEALTHY`, at the expected Supabase URL.
-The live database still has the three predecessor migrations and no `rr_`
-marketplace tables. Existing Auth, fixed account types, singleton admin and
-business drafts remain the live product until an authorized release.
+The marketplace code is **deployed, with payments explicitly disabled**. The
+three new versioned migrations and four Edge Functions listed below are live in
+RealReach project `jabwuawiqsusjrccapab`. Independent read-only checks confirmed
+`ACTIVE_HEALTHY` and the expected Supabase URL. Deployment is not acceptance of
+real payment or Instagram-provider behavior.
 
-## Implemented locally
+Commit `f2e4209` was pushed to GitHub. Its Vercel Git deployment is `READY` at
+`realreach.com.ng`, deployment `dpl_n8bDybQifscdKczVDfebJeRbcrFx`, as verified by
+the coordinating release agent. Existing Auth, fixed account types, singleton
+admin and saved drafts were preserved.
+
+Before private acceptance testing, the database had four profiles, zero payments
+and zero ledger journals. The coordinating agent has since created two private
+QA accounts under the user's instruction to perform the tests; no emails or
+money were used for those accounts. Thirty ordinary-user live API checks and
+eleven real browser form checks subsequently passed. Final independent counts:
+six users/profiles, one business, one unfunded draft and three labelled QA cases;
+zero payments, journals, ledger entries/accounts and jobs. See the
+[current live QA evidence](RealReach-Marketplace-Implementation-QA.md#live-browser-acceptance).
+These tests do not establish provider acceptance, email delivery or admin AAL2.
+
+## Deployed implementation
 
 - Additive migration `20261021165450_marketplace_production_core.sql`: verified
   Instagram identity/challenges, campaigns/quotes, atomic task claims, evidence,
@@ -27,6 +40,18 @@ business drafts remain the live product until an authorized release.
   retries. Admin reads/manual checks require the singleton and AAL2. Public GET
   exposes monitor freshness only; scheduled POST requires the private job token.
   See [sender configuration and limits](RealReach-Provider-Contracts.md#operations-email-resend).
+- Additive `20261021191322_payment_launch_gates.sql`: independent
+  `collections_enabled=false` and `payouts_enabled=false` settings, plus
+  `payouts_paused=true`. Database triggers block new payment intents and first
+  dispatch while disabled, including a direct service-role command. Edge
+  creation paths and capability responses also honor the gates. Existing
+  payment confirmations, status checks and reconciliation remain available.
+  Installing keys or changing the normal admin pricing/pause settings cannot
+  enable either launch gate; enablement requires a separately authorized
+  operator action after payment validation.
+- `pocketfi-webhook`: signed notification handling with authoritative provider
+  confirmation, discrepancy retention and replay-safe settlement. Its deployed
+  presence does not mean PocketFi credentials or live acceptance are complete.
 - Shared marketplace modules: payments, lists, projections, request handler,
   job orchestration and limits. Provider adapters/webhook are separate modules.
 - Browser money/state writes and privileged RPC execution are denied. SQL
@@ -110,45 +135,74 @@ so no fabricated preclaim size check is applied. These limits deliberately
 protect cost and correctness; high-volume delivery needs measured capacity
 tuning and potentially broader per-post scan sharing before it is advertised.
 
-Installing keys alone does **not** approve commercial pricing or increased
-provider usage. Prices begin at zero/unapproved and payouts are paused. The
-founder must approve rates, fees, retention and operating limits separately.
+Installing keys alone does **not** enable payments, approve commercial pricing
+or increase provider usage. Both payment launch gates remain false, prices are
+zero/unapproved, and payouts are paused. The founder must approve rates, fees,
+retention and operating limits separately. Payment gates must remain off until
+the separately authorized live payment checks have passed.
 
-## Safe migration/deployment route
+## Completed migration/deployment route
 
 Read-only comparison confirmed the contents of all three historical local
 migrations match their deployed statements exactly after newline normalization.
-Only their filename versions differ:
+Only their filename versions differed. The local files have now been renamed
+to match the existing remote history, without changing their SQL contents:
 
-| Current local filename | Actual deployed version / correct local filename |
+| Former local filename | Deployed version / current local filename |
 | --- | --- |
 | `20260928185915_identity_and_instagram_pilot.sql` | `20260928190700_identity_and_instagram_pilot.sql` |
 | `20260928192729_pilot_scheduler.sql` | `20260928192914_pilot_scheduler.sql` |
 | `20260929083042_account_boundaries_and_campaign_drafts.sql` | `20260929083206_account_boundaries_and_campaign_drafts.sql` |
 
-After release authorization:
+Following explicit push/deploy authorization, the coordinating agent applied:
 
-1. Rename only these local files to match the existing remote history; preserve
-   contents and update repository references. Do not repair correct remote
-   history, mark new SQL applied without executing it, or use `--include-all`.
-2. Use the RealReach-only helper to link and inspect migration history. Run
-   `db push --dry-run --linked`; require that it proposes **only**
-   `20261021165450_marketplace_production_core.sql` followed by
-   `20261021182743_marketplace_operations_monitor.sql`. Stop on any discrepancy.
-3. Apply those versioned migrations, deploy the marketplace, jobs, PocketFi
-   webhook and operations functions, then promote the matching frontend. Coordinate a release
-   window: migration revokes old direct draft writes, so an old frontend cannot
-   keep saving drafts between migration and promotion. Auth remains intact.
-4. Verify migration history, tables, grants/RLS, function versions, scheduler and
-   empty financial state. Test actual anonymous and distinct customer sessions,
-   the singleton admin with/without MFA, and the frontend against deployed APIs.
-5. Configure Rocket/PocketFi server secrets, signed webhook URL and approved
-   pricing. Run explicitly authorized small live transactions and controlled
-   Instagram tasks before opening paid acquisition.
+1. `20261021165450_marketplace_production_core.sql`.
+2. `20261021182743_marketplace_operations_monitor.sql`.
+3. `20261021191322_payment_launch_gates.sql`.
 
-The Management API migration endpoint is a fallback, not the preferred route:
-it generates its own remote migration version and therefore requires local
-history reconciliation afterward. It should not create a second timestamp drift.
+It then deployed `realreach-marketplace`, `marketplace-jobs`, `pocketfi-webhook`
+and `marketplace-operations`, and released the matching frontend through the
+GitHub/Vercel deployment above. No migration-history repair was used: correct
+remote history was preserved rather than relabelled or marked applied without
+execution. The three historical local filename corrections are complete.
+
+## Independent live release checks
+
+Read-only checks after deployment established:
+
+- Four pre-acceptance profiles preserved; zero payments and ledger journals at
+  that checkpoint. Subsequent private QA account creation is separate, as noted
+  above; do not interpret these counts as a final post-testing snapshot.
+- Collection and payout launch gates false, payouts paused, pricing unapproved;
+  the payment-gate trigger enabled. Public capabilities also returned
+  `payments:false`, `payouts:false`, `instagram:false`, `pricing:false` and
+  `payouts_paused:true`.
+- No public tables lacking RLS, and no `rr_market_*` or `rr_ops_*` functions
+  executable by `anon` or `authenticated`.
+- Marketplace and operations-monitor cron runs succeeded. The 19:20 UTC
+  monitoring snapshot contained zero payment/check/hold/support exceptions.
+  Its actual dispatched HTTP response was `200` with email not configured,
+  rather than merely a successful network enqueue. No alert had been sent:
+  the queued alert had zero attempts.
+- Public monitor GET returned `200 {"ok":true}`. This means the collector is
+  fresh, not that every product flow is healthy. Unauthenticated operations
+  POST, jobs POST and workspace POST returned `401`. An unsigned PocketFi
+  webhook request returned `503 configuration_unavailable` while its secrets
+  were absent; it did not process a payment.
+- First reconciliation was still never-run at that checkpoint; its daily cron
+  is scheduled for 03:17 GMT/UTC. The monitor honestly reported
+  `reconciliation_stale`. Worker heartbeat was unset with no queued work, not
+  claimed as a successfully tested provider run.
+- Performance advisors reported no warnings. Security advisors reported the
+  existing intentional authenticated onboarding SECURITY DEFINER function
+  and disabled leaked-password protection. The onboarding definition was
+  inspected: confirmed caller identity, fixed-role checks and singleton-admin
+  restrictions remain present. Leaked-password protection remains a follow-up.
+- The legacy `realreach-instagram-pilot` cron remains active; this is historical
+  configuration, not evidence that the current Instagram integration is ready.
+
+These checks did not create accounts, call a payment/Instagram provider, or
+move money. They do not replace the ordinary-user acceptance work now in progress.
 
 ## Verification completed locally
 
@@ -161,13 +215,18 @@ history reconciliation afterward. It should not create a second timestamp drift.
   existing obligations, service-only payment view, and audited unpaid review
   closure with exact allocation release, lease invalidation and replay safety;
   before/after-confirmation discrepancies and explicit withdrawal-fee consent.
-- **22 HTTP/session tests** against the actual handler with injected identity
+- **25 HTTP/session tests** against the actual handler with injected identity
   and database doubles: unauthenticated requests, cross-role writes, admin AAL2,
   malformed/oversized requests, amount validation, owner-scoped payment reads,
-  server transaction filters, unknown payout projection and revoked sessions.
+  server transaction filters, unknown payout projection, revoked sessions and
+  configured-provider requests blocked by disabled payment launch gates.
+- **11 payment launch-gate database checks**: both directions default off,
+  no new intents or first dispatches while disabled, independent direction
+  controls, temporary payout pause, existing-payment settlement preserved,
+  customer denial and normal admin settings unable to enable the gates.
 - Deno type checks pass for the four new Edge entrypoints. `git diff --check`
   passes. No new package.json dependency was required.
-- **29 native PostgreSQL 17.11 checks across 28 synchronized multi-connection
+- **31 native PostgreSQL 17.11 checks across 29 synchronized multi-connection
   races**, using 2–12 independent backend PIDs behind a database start barrier:
   funding/payout replay, same-campaign publication, last-slot and duplicate
   claims, reward settlement, competing withdrawals/campaign spending, closure
@@ -177,7 +236,9 @@ history reconciliation afterward. It should not create a second timestamp drift.
   settlement versus closure, event-before/event-after confirmation, stale
   conflicting confirmations, changed withdrawal fees and ledger invariants;
   reconciliation during funding, single digest/lease races, frozen request
-  preparation and concurrent finish replay.
+  preparation and concurrent finish replay; default-off launch gates and a
+  gate-disable transaction winning against simultaneous collection/payout first
+  dispatches and a new collection intent.
   No deadlocks or lock/statement timeouts occurred. The temporary loopback-only
   cluster was stopped after the run; no production database was accessed.
 - **37 PocketFi/webhook contracts and 17 payment-recovery tests** passed in the
@@ -196,6 +257,7 @@ Commands:
 ```powershell
 deno run --no-config --node-modules-dir=none --allow-read --allow-env --allow-sys tests/marketplace-database.mjs
 deno run --no-config --node-modules-dir=none --allow-read --allow-env --allow-sys tests/marketplace-operations-database.mjs
+deno run --no-config --node-modules-dir=none --allow-read --allow-env --allow-sys tests/payment-launch-gates-database.mjs
 deno test --no-config --node-modules-dir=none --allow-env tests/marketplace-operations-http.test.ts tests/operations-runner.test.ts
 deno test --config supabase/functions/deno.json --allow-env tests/marketplace-http.test.ts
 deno check --config supabase/functions/deno.json supabase/functions/realreach-marketplace/index.ts supabase/functions/marketplace-jobs/index.ts supabase/functions/pocketfi-webhook/index.ts supabase/functions/marketplace-operations/index.ts
@@ -207,8 +269,11 @@ genuine multi-connection verification for the listed scenarios. The official
 portable PostgreSQL runtime is isolated under ignored `work/`, with no service
 installation. See `tests/marketplace-concurrency.README.md` for source, isolation,
 commands and retained run evidence. HTTP doubles do not prove hosted JWT
-signatures, Google login or deployed RLS. Live migration/advisory checks,
-actual-user SDK integration and paid provider acceptance remain release gates. An uncertain payout
+signatures, Google login or ordinary-user deployed RLS behavior. Live
+migration/advisory checks are now complete as described above. Actual-user SDK
+integration is in progress; current Google signup/signin, onboarding, dashboard
+access, singleton-admin MFA, email acceptance and paid provider acceptance must
+not be labelled passed until their own evidence is recorded. An uncertain payout
 without a provider reference needs support reconciliation; it must never be
 resent automatically.
 

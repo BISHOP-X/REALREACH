@@ -1,5 +1,8 @@
 # Production flow cleanup — 29 September 2026
 
+Historical release record. The 21 October marketplace release supersedes the
+deployment and feature state below. Read [current implementation and live QA](RealReach-Marketplace-Implementation-QA.md).
+
 ## Decision and current scope
 
 The founder rejected a separate customer-facing demo/pilot product. The public site now has one real account flow, concise copy, fixed worker/business account types, private business records and saved campaign drafts. The old simulator and its open sample admin are no longer routed or imported by the production JavaScript.

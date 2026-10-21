@@ -4,8 +4,9 @@
 
 - This repository is RealReach, an Instagram-first marketplace frontend built
   with React, TypeScript and Vite. The production UI uses real Auth, fixed
-  account types and saved business drafts. The paid marketplace is incomplete.
-  Read docs/RealReach-Production-Flow-QA.md for current state; older prototype
+  account types and a deployed marketplace backend. Top-ups and payouts are
+  explicitly disabled; paid provider acceptance and financial recovery remain
+  incomplete. Read docs/RealReach-Marketplace-Implementation-QA.md for current state; older prototype
   descriptions are historical, not the active user journey.
 - Expected Supabase project ref: `jabwuawiqsusjrccapab`.
 - Expected API URL: `https://jabwuawiqsusjrccapab.supabase.co`.
